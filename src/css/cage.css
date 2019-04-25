@@ -1,0 +1,12 @@
+.cage{
+    width:20px;
+    height: 20px;
+    border:solid 1px blue;
+    margin:2px;
+    display:inline-block;
+    font-size:12px;
+}
+.cage:hover{
+    border:solid 2px black;
+    margin:1px;
+}
