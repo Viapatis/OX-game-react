@@ -1,8 +1,9 @@
-.cage{
-    width:20px;
+
+.controll{
+    width:80%;
     height: 20px;
     border:solid 1px blue;
-    margin:2px;
+    margin:auto 2px;
     display:inline-block;
     font-size:12px;
     background-color: aqua;
