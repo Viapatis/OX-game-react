@@ -43,7 +43,7 @@ export default class Board extends React.Component {
         this.props.onRestart();
     }
     componentDidMount = () => {
-        const timerID = setInterval(() => {
+        setInterval(() => {
             this.aiTurn();
         }, 500)
     }
@@ -51,7 +51,7 @@ export default class Board extends React.Component {
         const { cageValues, currentTurnType, end, turnType } = this.state;
         const { mode, difficulty, playerType } = this.props;
         if (mode === 'AI' && currentTurnType !== playerType && !end) {
-           // console.log(difficulty, playerType)
+            // console.log(difficulty, playerType)
             const index = makeAutoselction(cageValues, difficulty, playerType, currentTurnType);
             if (cageValues[index] === " ") {
                 const newCageValues = [...cageValues];
@@ -113,7 +113,7 @@ function checkWinner(array) {
                     counter++;
                 }
             }
-            if (counter == 3) {
+            if (counter === 3) {
                 return k;
             }
         }
