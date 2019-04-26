@@ -17,16 +17,18 @@ export default class Board extends React.Component {
     }
     changeValue = (index) => {
         const { cageValues, currentTurnType, turnType } = this.state;
-        if (cageValues[index] === " ") {
-            const newCageValues = [...cageValues];
-            newCageValues[index] = currentTurnType;
-            const nextTurnType = turnType[currentTurnType === "X"];
-            this.setState({
-                ...this.state,
-                cageValues: newCageValues,
-                currentTurnType: nextTurnType
-            })
-        }
+        const { playerType, mode } = this.props;
+        if (currentTurnType === playerType && mode === 'AI')
+            if (cageValues[index] === " ") {
+                const newCageValues = [...cageValues];
+                newCageValues[index] = currentTurnType;
+                const nextTurnType = turnType[currentTurnType === "X"];
+                this.setState({
+                    ...this.state,
+                    cageValues: newCageValues,
+                    currentTurnType: nextTurnType
+                })
+            }
     }
     restart = () => {
         this.setState({
@@ -42,22 +44,30 @@ export default class Board extends React.Component {
     }
     componentDidMount = () => {
         const timerID = setInterval(() => {
-            console.log('turn')
             this.aiTurn();
         }, 500)
     }
     aiTurn = () => {
-        const { cageValues, currentTurnType, end } = this.state;
+        const { cageValues, currentTurnType, end, turnType } = this.state;
         const { mode, difficulty, playerType } = this.props;
         if (mode === 'AI' && currentTurnType !== playerType && !end) {
-            console.log(difficulty, playerType)
-            const index = makeAutoselction(cageValues, difficulty, playerType);
-            this.changeValue(index);
+           // console.log(difficulty, playerType)
+            const index = makeAutoselction(cageValues, difficulty, playerType, currentTurnType);
+            if (cageValues[index] === " ") {
+                const newCageValues = [...cageValues];
+                newCageValues[index] = currentTurnType;
+                const nextTurnType = turnType[currentTurnType === "X"];
+                this.setState({
+                    ...this.state,
+                    cageValues: newCageValues,
+                    currentTurnType: nextTurnType
+                })
+            }
         }
     }
     render() {
-        const { cageValues, end, bot } = this.state;
-        const { mode, restart } = this.props;
+        const { cageValues, end } = this.state;
+        const { restart } = this.props;
         const cages = cageValues.map((value, index) => {
             return (<Cage value={value} index={index} changeValue={this.changeValue} />)
         });
@@ -67,8 +77,7 @@ export default class Board extends React.Component {
         }
         if (!end) {
             const endGame = checkResult ? (checkResult === 'end' ? 'End Game' : 'Winner ' + checkResult) : '';
-            console.log(endGame);
-            console.log(cageValues);
+            // console.log(endGame);
             if (endGame) {
                 this.props.finishGame(endGame);
             }
@@ -82,22 +91,29 @@ export default class Board extends React.Component {
 }
 
 function checkWinner(array) {
-    const vinCombination = ['123', '456', '789', '159', '357', '147', '258', '369'];
+    const vinCombination = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 4, 8], [2, 4, 6], [0, 3, 6], [1, 4, 7], [2, 5, 8]];
     const involvedCages = {
         'X': [],
         'O': []
     }
+    // console.log(array);
     array.forEach((element, index) => {
         if (element !== ' ')
-            involvedCages[element].push('' + (index + 1));
+            involvedCages[element].push(index);
     });
     if (involvedCages.X.length + involvedCages.O.length < 4)
         return null;
     for (let k in involvedCages) {
-        const allPosition = involvedCages[k].sort().join('');
+        const allPosition = involvedCages[k].sort();
         for (let i = 0; i < vinCombination.length; i++) {
-            //console.log(allPosition, allPosition.indexOf(vinCombination[i]));
-            if (allPosition.indexOf(vinCombination[i]) !== -1) {
+            const element = vinCombination[i]
+            let counter = 0;
+            for (let j = 0; j < element.length; j++) {
+                if (checkArrey(allPosition, element[j])) {
+                    counter++;
+                }
+            }
+            if (counter == 3) {
                 return k;
             }
         }
@@ -107,8 +123,7 @@ function checkWinner(array) {
     return null;
 }
 
-function makeAutoselction(array, difficulty, playerType) {
-    //console.log(difficulty);
+function makeAutoselction(array, difficulty, playerType, AItype) {
     const free = [];
     array.forEach((element, index) => {
         if (element === ' ') {
@@ -121,7 +136,6 @@ function makeAutoselction(array, difficulty, playerType) {
             const testAr = [...array];
             testAr[item] = playerType;
             const result = checkWinner(testAr);
-            //console.log(result, testAr);
             if (result === playerType) {
                 return free[i];
             }
@@ -129,35 +143,17 @@ function makeAutoselction(array, difficulty, playerType) {
     }
     if (difficulty !== '2') {
         const r = Math.random();
-        //console.log(Math.ceil(free.length * r) - 1, free);
         return free[Math.ceil(free.length * r) - 1];
     } else {
-        const myCage = [];
-        const vinCombination = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 4, 8], [2, 4, 6], [0, 3, 6], [1, 4, 7], [2, 5, 8]];
         const additionalComb = [0, 2, 6, 8];
         const balanceComb = [1, 3, 5, 7];
-        array.forEach((element, index) => {
-            if (element !== ' ' && element !== playerType) {
-                myCage.push(index);
-            }
-        });
-        for (let k = 0; k < vinCombination.length; k++) {
-            const element = vinCombination[k]
-            let counter = 0;
-            let wInd = 0;
-            for (let j = 0; j < element.length; j++) {
-                if (checkArrey(myCage, element[j])) {
-                    counter++;
-                } else {
-                    wInd = element[j];
-                }
-            }
-            console.log(myCage, counter, element, wInd);
-            if (counter == 2) {
-                console.log(myCage, counter, element);
-                if (array[wInd] === ' ') {
-                    return wInd;
-                }
+        for (let i = 0; i < free.length; i++) {
+            const item = free[i];
+            const testAr = [...array];
+            testAr[item] = AItype;
+            const result = checkWinner(testAr);
+            if (result === playerType) {
+                return free[i];
             }
         }
         if (array[4] === ' ') {
@@ -177,11 +173,10 @@ function makeAutoselction(array, difficulty, playerType) {
             }
         }
     }
-    console.log('nichego ne vibral')
 }
 function checkArrey(arr, elem) {
     for (let i = 0; i < arr.length; i++) {
-        if (elem == arr[i]) {
+        if (elem === arr[i]) {
             return true
         }
     }

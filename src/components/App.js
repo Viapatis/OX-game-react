@@ -65,7 +65,6 @@ class App extends React.Component {
   }
   render() {
     const { message, endGame, gameStage, mode, difficulty, playerType, restart } = this.state;
-    console.log(gameStage);
     return (
       <div className="App" >
         <div className='gameArea' hidden={(gameStage !== 2)}>
