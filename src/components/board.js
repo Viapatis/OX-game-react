@@ -18,7 +18,7 @@ export default class Board extends React.Component {
     changeValue = (index) => {
         const { cageValues, currentTurnType, turnType } = this.state;
         const { playerType, mode } = this.props;
-        if (currentTurnType === playerType && mode === 'AI')
+        if (currentTurnType === playerType && mode === 'AI' || mode !== "AI") {
             if (cageValues[index] === " ") {
                 const newCageValues = [...cageValues];
                 newCageValues[index] = currentTurnType;
@@ -28,7 +28,11 @@ export default class Board extends React.Component {
                     cageValues: newCageValues,
                     currentTurnType: nextTurnType
                 })
+                setTimeout(() => {
+                    this.aiTurn();
+                }, 500)
             }
+        }
     }
     restart = () => {
         this.setState({
@@ -41,11 +45,6 @@ export default class Board extends React.Component {
             currentTurnType: 'X'
         })
         this.props.onRestart();
-    }
-    componentDidMount = () => {
-        setInterval(() => {
-            this.aiTurn();
-        }, 500)
     }
     aiTurn = () => {
         const { cageValues, currentTurnType, end, turnType } = this.state;
@@ -67,13 +66,18 @@ export default class Board extends React.Component {
     }
     render() {
         const { cageValues, end } = this.state;
-        const { restart } = this.props;
+        const { restart, playerType,mode} = this.props;
         const cages = cageValues.map((value, index) => {
             return (<Cage value={value} index={index} changeValue={this.changeValue} />)
         });
         const checkResult = checkWinner(cageValues);
         if (restart) {
             this.restart();
+        }
+        if (playerType === 'O'&&mode==='AI') {
+            setTimeout(() => {
+                this.aiTurn();
+            }, 500)
         }
         if (!end) {
             const endGame = checkResult ? (checkResult === 'end' ? 'End Game' : 'Winner ' + checkResult) : '';
